@@ -3,6 +3,8 @@ const assert = require('node:assert');
 const path = require('path');
 const StorageService = require('../../src/services/StorageService');
 
+const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000';
+
 test('StorageService - constructor requires storagePath', () => {
   assert.throws(
     () => new StorageService(null),
@@ -12,9 +14,9 @@ test('StorageService - constructor requires storagePath', () => {
 
 test('StorageService - getFilePath with valid id', () => {
   const service = new StorageService('/tmp/storage');
-  const filePath = service.getFilePath('doc123');
+  const filePath = service.getFilePath(VALID_UUID);
 
-  assert.ok(filePath.includes('doc123'));
+  assert.ok(filePath.includes(VALID_UUID));
   assert.ok(filePath.includes('/tmp/storage'));
 });
 
@@ -30,9 +32,19 @@ test('StorageService - getFilePath throws on missing id', () => {
 test('StorageService - getFilePath prevents directory traversal', () => {
   const service = new StorageService('/tmp/storage');
 
+  // Path traversal attempts are rejected by UUID validation
   assert.throws(
     () => service.getFilePath('../../../etc/passwd'),
-    /Path traversal detected/
+    /Invalid document ID format/
+  );
+});
+
+test('StorageService - getFilePath rejects invalid UUID format', () => {
+  const service = new StorageService('/tmp/storage');
+
+  assert.throws(
+    () => service.getFilePath('not-a-uuid'),
+    /Invalid document ID format/
   );
 });
 
@@ -79,3 +91,4 @@ test('StorageService - readFile requires id', async () => {
     assert.ok(error.message.includes('Document ID is required'));
   }
 });
+

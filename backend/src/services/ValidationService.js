@@ -25,13 +25,15 @@ class ValidationService {
     }
   }
 
-  // Valida ID de documento
+  // Valida ID de documento (must be valid UUID format)
   static validateDocumentId(id) {
     if (!id || typeof id !== 'string') {
       throw new Error('Document ID must be a non-empty string');
     }
 
-    if (id.length !== 36) { // UUID length
+    // RFC 4122 UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
       throw new Error('Invalid document ID format');
     }
   }

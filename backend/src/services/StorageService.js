@@ -18,6 +18,12 @@ class StorageService {
       throw new Error('Document ID is required');
     }
 
+    // Validate document ID format (UUID) to prevent directory traversal
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(documentId)) {
+      throw new Error('Invalid document ID format');
+    }
+
     const filePath = path.join(this.storagePath, documentId);
     this._validatePath(filePath);
     return filePath;
