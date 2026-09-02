@@ -19,13 +19,14 @@ const StorageService = require('./services/StorageService');
 const DocumentService = require('./services/DocumentService');
 const createDocumentRoutes = require('./routes/documents');
 const { storagePath } = require('./config/multer');
+const multer = require('multer');
+const documentsRoutes = require('./routes/documents.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Endpoint de verificação de saúde
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
@@ -45,6 +46,24 @@ app.use((error, req, res, next) => {
 
   res.status(statusCode).json({
     error: message,
+app.use(documentsRoutes);
+
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      error: {
+        code: 'FILE_TOO_LARGE',
+        message: 'O arquivo excede o tamanho máximo permitido.',
+      },
+    });
+  }
+
+  console.error(error);
+  return res.status(500).json({
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: 'Não foi possível processar a solicitação.',
+    },
   });
 });
 
